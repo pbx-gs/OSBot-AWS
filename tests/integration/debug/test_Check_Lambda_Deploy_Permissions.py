@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from osbot_aws.apis.IAM import IAM
 
-from osbot_utils.utils.Files import folder_files, files_list, path_combine, file_exists
+from osbot_utils.utils.Files import folder_files, path_combine, file_exists
 from osbot_aws.deploy.Deploy_Lambda import Deploy_Lambda
 from osbot_aws.lambdas.dev.hello_world import run
 from osbot_utils.utils.Misc import random_string, list_set
@@ -42,6 +42,7 @@ class test_Check_Lambda_Deploy_Permissions(TestCase):
         assert self.sts.caller_identity_account()           == '785217600689'
         assert self.sts.check_current_session_credentials() is True
         assert self.sts.current_region_name()               == self.expected_region
+        # pprint(self.sts.assume_role('785217600689:temp_role_for_lambda_invocation', 'test-session'))
 
     def test_s3_read_access(self):
         expected_file   = 'lambdas/k8_live_servers.lambdas.screenshot.zip'
@@ -74,7 +75,7 @@ class test_Check_Lambda_Deploy_Permissions(TestCase):
         assert run.__module__                          == self.expected_module
         assert run.__name__                            == 'run'
         assert '/osbot_aws/lambdas/dev/hello_world.py' in package.get_files()
-        assert len(files_list(aws_lambda.folder_code)) == len(package.get_files())
+        assert len(folder_files(aws_lambda.folder_code)) == len(package.get_files())
         assert file_exists(path_combine(aws_lambda.folder_code, 'osbot_aws/lambdas/dev/hello_world.py'))
 
         assert aws_lambda.s3_bucket == f'{self.expected_account_id}-osbot-lambdas'
@@ -98,6 +99,7 @@ class test_Check_Lambda_Deploy_Permissions(TestCase):
         assert aws_lambda.exists() is False
 
         result = aws_lambda.create()
+        pprint(result)
 
         data   = result.get('data')
 
